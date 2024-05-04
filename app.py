@@ -1,6 +1,6 @@
-from config import api, app
+from config import api, app, db
 from models import User, Blog, Comment
-from flask import session, make_response, jsonify
+from flask import session, make_response, jsonify, request
 from flask_restful import Resource
 
 
@@ -10,6 +10,67 @@ class Home(Resource):
 
 
 api.add_resource(Home, "/")
+
+class Signup(Resource):
+    def post(self):
+        first_name = request.get_json()['first_name']
+        last_name = request.get_json()['last_name']
+        email = request.get_json()['email']
+        password = request.get_json()['password']
+
+        if first_name and last_name and email and password:
+            new_user = User(first_name=first_name, last_name=last_name, email=email)
+            new_user.password_hash = password
+
+            db.session.add(new_user)
+            db.session.commit()
+
+            session['user_id'] = new_user.id
+
+            response = new_user.to_dict(only=["id", "email"])
+            return make_response({"user":new_user}, 201)
+        return make_response({'error': '422 Unprocessable Entity'}, 422)
+
+
+api.add_resource(Signup, "/signup")
+
+class Login(Resource):
+    def post(self):
+        email = request.get_json()['email']
+        password = request.get_json()['password']
+
+        user = User.query.filter(User.email == email).first()
+        if user and user.authenticate(password):
+            session['user_id'] = user.id
+            return user.to_dict(rules=['-blogs', '-_password_hash']), 200
+        else:
+            return {'error': '401 Unauthorized'}, 401
+
+
+api.add_resource(Login, "/login")
+
+
+class CheckSession(Resource):
+    def get(self):
+        if session.get('user_id'):
+            user = User.query.filter(User.id == session['user_id']).first()
+            return user.to_dict(only=['id', 'email']), 200
+        return {'error': '401 Resource not found'}, 401
+
+
+api.add_resource(CheckSession, "/check_session")
+
+
+class Logout(Resource):
+    def delete(self):
+        if session.get('user_id'):
+            session.pop("user_id")
+            return {}, 204
+        else:
+            return {'error': '401 Unauthorized'}, 401
+
+
+api.add_resource(Logout, "/logout")
 
 
 class Users(Resource):
