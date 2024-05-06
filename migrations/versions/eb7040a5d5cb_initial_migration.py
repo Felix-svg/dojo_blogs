@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 6ee8ed45a43f
+Revision ID: eb7040a5d5cb
 Revises: 
-Create Date: 2024-05-04 18:27:50.670548
+Create Date: 2024-05-06 20:03:04.003564
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6ee8ed45a43f'
+revision = 'eb7040a5d5cb'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,7 +31,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('content', sa.String(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
@@ -42,11 +42,10 @@ def upgrade():
     sa.Column('author', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
     sa.Column('content', sa.String(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.Column('blog_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['blog_id'], ['blogs.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email')
+    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
 

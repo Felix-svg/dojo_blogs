@@ -12,7 +12,8 @@ CORS(app)
 bcrypt = Bcrypt(app)
 
 #app.secret_key = "dsjkdfiwsnsdddfdjdssbohjoiaavg"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///dojo.db"
+#app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///dojo.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://my_database_c7w2_user:z2gVEkzO4wQMKw3rtMq6F8MHUTbPcMPN@dpg-coka46ud3nmc7396q1mg-a.oregon-postgres.render.com/dojo_blogs_db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['JWT_SECRET_KEY'] = 'dsjkdfiwsnsdddfdjdssbohjoiaavg'
 app.json.compact = False
