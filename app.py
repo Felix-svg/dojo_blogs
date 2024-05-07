@@ -2,7 +2,7 @@ from config import api, app, db, jwt
 from models import User, Blog, Comment
 from flask import session, make_response, jsonify, request
 from flask_restful import Resource
-from flask_jwt_extended import jwt_required, create_access_token
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 
 
 class Home(Resource):
@@ -11,6 +11,7 @@ class Home(Resource):
 
 
 api.add_resource(Home, "/")
+
 
 class Signup(Resource):
     def post(self):
@@ -45,6 +46,7 @@ class Signup(Resource):
 
 
 api.add_resource(Signup, "/signup")
+
 
 class Login(Resource):
     def post(self):
@@ -93,13 +95,19 @@ api.add_resource(Login, "/login")
 
 
 class Users(Resource):
-    @jwt_required()
+    #@jwt_required()
     def get(self):
-        users = []
+        # current_user_id = get_jwt_identity()
+        # if not current_user_id:
+        #     return make_response({"error": "User not authenticated"}, 401)
 
-        for user in User.query.all():
-            users.append(user.to_dict(rules=['-blogs', '-_password_hash']))
-        return make_response({"users": users}, 200)
+        try:
+            users = []
+            for user in User.query.all():
+                users.append(user.to_dict(rules=['-blogs', '-_password_hash']))
+            return make_response({"users": users}, 200)
+        except Exception as e:
+            return make_response({"error": str(e)}, 500)
 
 
 api.add_resource(Users, "/users")
@@ -117,15 +125,15 @@ class UserByID(Resource):
 
     @jwt_required()
     def delete(self, id):
-        user = User.query.filter(User.id==id).first()
+        user = User.query.filter(User.id == id).first()
 
         if user:
             db.session.delete(user)
             db.session.commit()
 
-            return make_response({"message":"User deleted successfully"})
+            return make_response({"message": "User deleted successfully"})
 
-        return make_response({"error":"User does not exist"})
+        return make_response({"error": "User does not exist"})
 
 
 api.add_resource(UserByID, "/users/<int:id>")
@@ -153,10 +161,9 @@ class BlogByID(Resource):
         else:
             return make_response({"error": "Blog not found"}, 401)
 
-
     @jwt_required()
     def patch(self, id):
-        blog = Blog.query.filter(Blog.id==id).first()
+        blog = Blog.query.filter(Blog.id == id).first()
 
         for attr in request.json():
             setattr(blog, attr, request.json[attr])
@@ -166,17 +173,16 @@ class BlogByID(Resource):
         response = blog.to_dict(rules=['-user', '-comments'])
         return make_response({"blog": response}, 200)
 
-
     @jwt_required()
     def delete(self, id):
-        blog = Blog.query.filter(Blog.id==id).first()
+        blog = Blog.query.filter(Blog.id == id).first()
 
         if blog:
             db.session.delete(blog)
             db.session.commit()
 
-            return make_response({"message":"Blog deleted successfully"})
-        return make_response({"error":"Blog does not exist"})
+            return make_response({"message": "Blog deleted successfully"})
+        return make_response({"error": "Blog does not exist"})
 
 
 api.add_resource(BlogByID, "/blogs/<int:id>")
@@ -204,22 +210,21 @@ class CommentByID(Resource):
             response = comment.to_dict(rules=['-blog'])
             return make_response({"comment": response}, 200)
         else:
-            return make_response({"error":"Comment not found"}, 401)
+            return make_response({"error": "Comment not found"}, 401)
 
     @jwt_required()
     def delete(self, id):
-        comment = Comment.query.filter(Comment.id==id).first()
+        comment = Comment.query.filter(Comment.id == id).first()
 
         if comment:
             db.session.delete(comment)
             db.session.commit()
 
-            return make_response({"message":"Comment deleted successfully"})
-        return make_response({"error":"Comment not found"})
+            return make_response({"message": "Comment deleted successfully"})
+        return make_response({"error": "Comment not found"})
 
 
 api.add_resource(CommentByID, "/comments/<int:id>")
-
 
 if __name__ == "__main__":
     app.run(debug=True)
